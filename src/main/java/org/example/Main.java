@@ -44,12 +44,29 @@ public class Main {
 
 
 
-        // Triangle - mathematical vals, not pixel vals
+        // Square - mathematical vals, not pixel vals
+        // must use two triangles to form square
+
+        // since the window is longer than it is tall 1 unit of x/y have different vals
+        // x 1 unit -> 400 pixels
+        // y 1 unit -> 300 pixels
+        // must divide larger unit by aspect ratio to ensure units match
+        float aspect = 800.0f / 600.0f; // 1.333
         float[] vertices = {
-                0.0f,  0.5f,   // top
-                -0.5f, -0.5f,   // bottom-left
-                0.5f, -0.5f    // bottom-right
+                -0.5f/aspect,  0.5f,   // top-left    0
+                0.5f/aspect,  0.5f,   // top-right    1
+                -0.5f/aspect, -0.5f,   // bottom-left 2
+                0.5f/aspect, -0.5f    // bottom-right 3
         };
+
+        // indicies in order for each triangle
+        int[] indices = {
+                0, 1, 2,
+                1, 3, 2
+        };
+
+        // create EBO (element buffer object to store indicies on gpu)
+        int ebo = GL15.glGenBuffers();
 
         // Create a VBO (vertex buffer object)
         // more efficient
@@ -66,6 +83,16 @@ public class Main {
         // lets gpu know every two floats are paired for the vertex
         int vao = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(vao);
+
+
+        // bind ebo and upload indices
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+        GL15.glBufferData(
+                GL15.GL_ELEMENT_ARRAY_BUFFER,
+                indices,
+                GL15.GL_STATIC_DRAW
+        );
 
         // Connect VBO to VAO
         GL20.glVertexAttribPointer(
@@ -139,10 +166,14 @@ public class Main {
             // Draw triangle
             GL30.glBindVertexArray(vao);
 
-            GL11.glDrawArrays(
+
+            // draw element allows you to draw vertices by index while
+            // draw array is sequential
+            GL11.glDrawElements(
                     GL11.GL_TRIANGLES,
-                    0,
-                    3
+                    6,
+                    GL11.GL_UNSIGNED_INT,
+                    0
             );
 
             GLFW.glfwSwapBuffers(window);
