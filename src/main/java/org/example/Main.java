@@ -37,6 +37,10 @@ public class Main {
         // Initialize OpenGL
         GL.createCapabilities();
 
+        // enables depth testing to prevent primitives at different z vals
+        // overwriting each other
+        // tells opengl to check z before deciding whether to clear
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
 
         // Render Window
         GL11.glClearColor(0.2f, 0.4f, 0.8f, 1.0f);
@@ -44,26 +48,51 @@ public class Main {
 
 
 
-        // Square - mathematical vals, not pixel vals
-        // must use two triangles to form square
-
-        // since the window is longer than it is tall 1 unit of x/y have different vals
-        // x 1 unit -> 400 pixels
-        // y 1 unit -> 300 pixels
-        // must divide larger unit by aspect ratio to ensure units match
-        float aspect = 800.0f / 600.0f; // 1.333
+        // Squares - mathematical vals, not pixel vals
+        // must use two triangles to form the two squares making a cube
         float[] vertices = {
-                -0.5f/aspect,  0.5f,   // top-left    0
-                0.5f/aspect,  0.5f,   // top-right    1
-                -0.5f/aspect, -0.5f,   // bottom-left 2
-                0.5f/aspect, -0.5f    // bottom-right 3
+                // Front face
+                -0.5f,  0.5f,  0.5f,  // 0      tl
+                0.5f,  0.5f,  0.5f,  // 1       tr
+                -0.5f, -0.5f,  0.5f,  // 2      bl
+                0.5f, -0.5f,  0.5f,  // 3       br
+
+                // Back face
+                -0.5f,  0.5f, -0.5f,  // 4      tl
+                0.5f,  0.5f, -0.5f,  // 5       tr
+                -0.5f, -0.5f, -0.5f,  // 6      bl
+                0.5f, -0.5f, -0.5f   // 7       br
         };
 
         // indicies in order for each triangle
+        // GL_triangles will read vals 3 at a time
+        // Cube vertex indices (6 faces x 2 triangles x 3 vertices = 36 vertices)
         int[] indices = {
-                0, 1, 2,
-                1, 3, 2
+                // Front
+                0, 2, 1,
+                1, 2, 3,
+
+                // Back
+                4, 5, 6,
+                5, 7, 6,
+
+                // Left
+                4, 6, 0,
+                0, 6, 2,
+
+                // Right
+                1, 3, 5,
+                5, 3, 7,
+
+                // Top
+                4, 0, 5,
+                5, 0, 1,
+
+                // Bottom
+                2, 6, 3,
+                3, 6, 7
         };
+
 
         // create EBO (element buffer object to store indicies on gpu)
         int ebo = GL15.glGenBuffers();
@@ -97,10 +126,10 @@ public class Main {
         // Connect VBO to VAO
         GL20.glVertexAttribPointer(
                 0,                  // attribute number
-                2,                  // 2 values per vertex
+                3,                  // 3 values per vertex
                 GL11.GL_FLOAT,      // they're floats
                 false,              // don't normalize
-                2 * Float.BYTES,    // how many bytes to the next vertex
+                3 * Float.BYTES,    // each vertex takes 3 floats worth of space
                 0                   // start at the beginning
         );
 
@@ -161,7 +190,8 @@ public class Main {
         while (!GLFW.glfwWindowShouldClose(window)) {
 
             // erase prev fame, display frame just rendered
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+            // bitwise or operator used to combine calls (saves time when going to the same library)
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
             // Draw triangle
             GL30.glBindVertexArray(vao);
@@ -171,7 +201,7 @@ public class Main {
             // draw array is sequential
             GL11.glDrawElements(
                     GL11.GL_TRIANGLES,
-                    6,
+                    36,
                     GL11.GL_UNSIGNED_INT,
                     0
             );
