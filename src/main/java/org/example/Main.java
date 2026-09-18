@@ -7,10 +7,33 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.honored.thml.Vector4;
+import com.honored.thml.Matrix4;
+
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     static void main() throws IOException {
+
+
+        // Math Test
+        Matrix4 scale = new Matrix4();
+        scale.scale(2, 2, 2);
+
+        Matrix4 rotation = new Matrix4();
+        rotation.rotateZ(90);
+
+        Matrix4 translation = new Matrix4();
+        translation.translate(5, 0, 0);
+
+        Matrix4 combined = translation.multiply(rotation).multiply(scale);
+        Vector4 vector = new Vector4(1, 0, 0, 1);
+
+        Vector4 result = combined.multiply(vector);
+
+        System.out.println(result);
+
+
 
         if (!GLFW.glfwInit()) {
             throw new IllegalStateException("Could not initialize GLFW");
